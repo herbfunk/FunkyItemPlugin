@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Serialization;
-using fItemPlugin.Player;
+using fBaseXtensions.Game;
+using fBaseXtensions.Helpers;
 using fItemPlugin.Townrun;
 
 namespace fItemPlugin
@@ -65,11 +66,17 @@ namespace fItemPlugin
 			IdentifyLegendaries = false;
 			UseItemManagerEvaluation = false;
 		}
-
+		private static string SettingsFilePath
+		{
+			get
+			{
+				return Path.Combine(FolderPaths.sFunkySettingsPath, FunkyGame.CurrentHeroName + "_TownRun.xml");
+			}
+		}
 		public static void SerializeToXML(Settings settings)
 		{
 			XmlSerializer serializer = new XmlSerializer(typeof(Settings));
-			TextWriter textWriter = new StreamWriter(FolderPaths.sFunkySettingsCurrentPath);
+			TextWriter textWriter = new StreamWriter(SettingsFilePath);
 			serializer.Serialize(textWriter, settings);
 			textWriter.Close();
 		}
@@ -86,9 +93,7 @@ namespace fItemPlugin
 
 		public static void LoadSettings()
 		{
-			Character.UpdateAccoutDetails();
-
-			string sFunkyCharacterConfigFile = FolderPaths.sFunkySettingsCurrentPath;
+			string sFunkyCharacterConfigFile = SettingsFilePath;
 
 			//Check for Config file
 			if (!File.Exists(sFunkyCharacterConfigFile))
@@ -97,7 +102,7 @@ namespace fItemPlugin
 				SerializeToXML(FunkyTownRunPlugin.PluginSettings);
 			}
 
-			FunkyTownRunPlugin.PluginSettings = DeserializeFromXML(FolderPaths.sFunkySettingsCurrentPath);
+			FunkyTownRunPlugin.PluginSettings = DeserializeFromXML(SettingsFilePath);
 		}
 	}
 }

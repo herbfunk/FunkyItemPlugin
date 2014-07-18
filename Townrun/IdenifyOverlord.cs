@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using fItemPlugin.Player;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
 using Zeta.Bot.Navigation;
 using Zeta.Common;
 using Zeta.Game;
@@ -60,7 +61,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus IdenifyItemManualBehavior(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -209,7 +210,7 @@ namespace fItemPlugin.Townrun
 
 
 			//Wait until we are not moving
-			if (Character.IsMoving)
+			if (FunkyGame.CurrentActiveHero.IsMoving)
 			{
 				return false;
 			}
@@ -296,7 +297,7 @@ namespace fItemPlugin.Townrun
 		//SNO: 297813, 297814, 295415, 342675 
 		internal static RunStatus IdenifyItemBookOfCainMovementBehavior(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -323,7 +324,7 @@ namespace fItemPlugin.Townrun
 			//Character.FindActByLevelID(Bot.Character.Data.CurrentWorldDynamicID);
 
 			//Wait until we are not moving
-			if (Character.IsMoving) return RunStatus.Running;
+			if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
 
 
 			float iDistanceFromSell = Vector3.Distance(vectorPlayerPosition, vectorBookOfCainLocation);
@@ -340,7 +341,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus IdenifyItemBookOfCainInteractionBehavior(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");

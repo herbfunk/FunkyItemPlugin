@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using fItemPlugin.Items;
-using fItemPlugin.Player;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
+using fBaseXtensions.Items;
 using Zeta.Bot;
 using Zeta.Bot.Navigation;
 using Zeta.Common;
@@ -25,7 +26,7 @@ namespace fItemPlugin.Townrun
 		internal static bool GamblingRunOverlord(object ret)
 		{//Should we gamble?
 
-			if (FunkyTownRunPlugin.PluginSettings.EnableBloodShardGambling && IsInAdventureMode && 
+			if (FunkyTownRunPlugin.PluginSettings.EnableBloodShardGambling && FunkyGame.AdventureMode && 
 				!FunkyTownRunPlugin.PluginSettings.BloodShardGambleItems.Equals(BloodShardGambleItems.None) &&
 				ValidGambleItems.Any(i => FunkyTownRunPlugin.PluginSettings.BloodShardGambleItems.HasFlag(i)))
 			{
@@ -49,7 +50,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus GamblingMovement(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -70,7 +71,7 @@ namespace fItemPlugin.Townrun
 
 			
 			//Wait until we are not moving
-			if (Character.IsMoving) return RunStatus.Running;
+			if (FunkyGame.GameIsInvalid) return RunStatus.Running;
 
 
 			float fDistance = Vector3.Distance(vectorPlayerPosition, vectorGamblingPosition);
@@ -96,7 +97,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus GamblingInteraction(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.DebugFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -190,7 +191,8 @@ namespace fItemPlugin.Townrun
 			if (LastBloodShardCount != CurrentBloodShardCount)
 			{
 				LastBloodShardCount=CurrentBloodShardCount;
-				FunkyTownRunPlugin.TownRunStats.ItemsGambled++;
+				FunkyGame.CurrentGameStats.CurrentProfile.ItemsGambled++;
+				//FunkyTownRunPlugin.TownRunStats.ItemsGambled++;
 			}
 			else if (ZetaDia.Me.Inventory.NumFreeBackpackSlots < 3)
 			{
@@ -219,7 +221,7 @@ namespace fItemPlugin.Townrun
 				return RunStatus.Failure;
 			}
 
-
+			MovedToSafetyLocation = false;
 			PurchasedItem = false;
 			LastBloodShardCount = 0;
 			nextItemType = BloodShardGambleItems.None;

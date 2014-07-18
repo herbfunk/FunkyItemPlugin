@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
-using fItemPlugin.Player;
+using fBaseXtensions.Game;
 using fItemPlugin.Townrun;
 using Zeta.Bot;
 using Button = System.Windows.Controls.Button;
@@ -73,7 +73,7 @@ namespace fItemPlugin
 			//Settings_Funky.LoadFunkyConfiguration();
 
 			Owner = Demonbuddy.App.Current.MainWindow;
-			Title = String.Format("Funky Town Run Settings -- {0} {1}", Character.CurrentAccountName, Character.CurrentHeroName);
+			Title = String.Format("Funky Town Run Settings -- {0} {1}", FunkyGame.CurrentAccountName, FunkyGame.CurrentHeroName);
 			SizeToContent = System.Windows.SizeToContent.WidthAndHeight;
 			ResizeMode = System.Windows.ResizeMode.CanMinimize;
 			Background = System.Windows.Media.Brushes.Black;
@@ -735,13 +735,13 @@ namespace fItemPlugin
 		{
 			ComboBox cbSender = (ComboBox)sender;
 			if (cbSender.Name == "White")
-				FunkyTownRunPlugin.PluginSettings.SalvageWhiteItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 1 : 61;
+				FunkyTownRunPlugin.PluginSettings.SalvageWhiteItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 61 : 1;
 			else if (cbSender.Name == "Magic")
-				FunkyTownRunPlugin.PluginSettings.SalvageMagicItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 1 : 61;
+				FunkyTownRunPlugin.PluginSettings.SalvageMagicItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 61 : 1;
 			else if (cbSender.Name == "Rare")
-				FunkyTownRunPlugin.PluginSettings.SalvageRareItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 1 : 61;
+				FunkyTownRunPlugin.PluginSettings.SalvageRareItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 61 : 1;
 			else if (cbSender.Name == "Legendary")
-				FunkyTownRunPlugin.PluginSettings.SalvageLegendaryItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 1 : 61;
+				FunkyTownRunPlugin.PluginSettings.SalvageLegendaryItemLevel = cbSender.SelectedIndex == 0 ? 0 : cbSender.SelectedIndex == 1 ? 61 : 1;
 		}
 
 		private void BloodShardGamblingChecked(object sender, EventArgs e)

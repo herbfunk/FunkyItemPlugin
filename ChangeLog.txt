@@ -1,5 +1,11 @@
-﻿v0.1.0
+﻿v1.0.0
+Now references fBaseXtensions Plugin.
+Item Rules Evaluation will always use keep to evaluate actions.
+Majority of code has been moved into fBaseXtensions. (besides ItemRules, TownRun behaviors, and plugin)
 
+
+
+v0.1.0
 FunkyBot will reference this plugin now!
 
 Added Static Class Equipment
@@ -24,16 +30,16 @@ Added Balance Cache Class to lookup items using Balance ID.
 
 
 Item Cache will reset every new town run.
-Check for Potions will now use the PluginItemType instead of DB ItemType.
+Check for Potions will now use the PluginItemTypes instead of DB ItemType.
 Invalid Game will reset action behavior properties.
 Infernal Keys will no longer be considered legendary crafting materials and sold.
-Added town run stats output - found @ DB\FunkyStats\Account\ folder.
+Added town run stats output - found @ DB\FunkyStats\FunkyGame\ folder.
 	-includes total town runs, items gambled, and stash/sold/salvage counts.
 
 
 v0.0.3
 
-Config settings should now load Hero and Account Name when bot is not running.
+Config settings should now load Hero and FunkyGame Name when bot is not running.
 Fixed Backpack Full Check.
 Added Potion Count -- Zero will sell all regular potions.
 Sells Legendary Crafting Reagents.

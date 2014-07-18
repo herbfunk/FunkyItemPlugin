@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
+using fBaseXtensions.Items;
+using fBaseXtensions.Items.Enums;
 using fItemPlugin.ItemRules;
-using fItemPlugin.Items;
-using fItemPlugin.Player;
 using Zeta.Bot;
 using Zeta.Bot.Navigation;
 using Zeta.Common;
@@ -35,7 +37,7 @@ namespace fItemPlugin.Townrun
 					// Find out if this item's in a protected bag slot
 					if (!ItemManager.Current.ItemIsProtected(thisitem.ACDItem))
 					{
-						if (thisitem.IsUnidentified || thisitem.ItemType == PluginItemType.HealthPotion || thisitem.IsVendorBought || thisitem.IsHoradricCache) continue;
+						if (thisitem.IsUnidentified || thisitem.ItemType == PluginItemTypes.HealthPotion || thisitem.IsVendorBought || thisitem.IsHoradricCache || thisitem.ThisLevel==1) continue;
 
 						bool bShouldVisitSalvage = false;
 
@@ -55,11 +57,16 @@ namespace fItemPlugin.Townrun
 								Interpreter.InterpreterAction action = FunkyTownRunPlugin.ItemRulesEval.checkItem(thisitem.ACDItem, ItemEvaluationType.Keep);
 								switch (action)
 								{
-									case Interpreter.InterpreterAction.KEEP:
-										continue;
-									case Interpreter.InterpreterAction.TRASH:
+									case Interpreter.InterpreterAction.SALVAGE:
 										townRunItemCache.SalvageItems.Add(thisitem);
 										continue;
+									case Interpreter.InterpreterAction.TRASH:
+										if (SalvageValidation(thisitem))
+										{
+											townRunItemCache.SalvageItems.Add(thisitem);
+											continue;
+										}
+										break;
 								}
 							}
 
@@ -109,7 +116,7 @@ namespace fItemPlugin.Townrun
 			}
 
 			bLoggedJunkThisStash = false;
-
+			MovedToSafetyLocation = false;
 			Delay.Reset();
 			return RunStatus.Success;
 		}
@@ -119,14 +126,14 @@ namespace fItemPlugin.Townrun
 		// **********************************************************************************************
 		internal static RunStatus GilesOptimisedSalvage(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
 				return RunStatus.Failure;
 			}
 
-			DiaUnit objBlacksmith = ZetaDia.Actors.GetActorsOfType<DiaUnit>(true).FirstOrDefault<DiaUnit>(u => u.IsSalvageShortcut);
+			DiaUnit objBlacksmith = ZetaDia.Actors.GetActorsOfType<DiaUnit>(true).FirstOrDefault<DiaUnit>(u => u.Name.StartsWith(SalvageName));
 			Vector3 vectorPlayerPosition = ZetaDia.Me.Position;
 			Vector3 vectorSalvageLocation = Vector3.Zero;
 
@@ -134,19 +141,25 @@ namespace fItemPlugin.Townrun
 			//Normal distance we use to move to specific location before moving to NPC
 			float _distanceRequired=CurrentAct!=Act.A5?50f:14f; //Act 5 we want short range only!
 
-			if (objBlacksmith == null || objBlacksmith.Distance > _distanceRequired)
+			if (Vector3.Distance(vectorPlayerPosition, SafetySalvageLocation) <= 2.5f)
+				MovedToSafetyLocation = true;
+
+			if (objBlacksmith == null || (!MovedToSafetyLocation && objBlacksmith.Distance > _distanceRequired))
 			{
 				vectorSalvageLocation = SafetySalvageLocation;
 			}
 			else
+			{
+				//MovedToSafetyLocation = true;
 				vectorSalvageLocation = objBlacksmith.Position;
+			}
 
 			//if (vectorSalvageLocation == Vector3.Zero)
 			//	Character.FindActByLevelID(Bot.Character.Data.CurrentWorldDynamicID);
 
 
 			//Wait until we are not moving
-			if (Character.IsMoving) return RunStatus.Running;
+			if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
 
 
 			float iDistanceFromSell = Vector3.Distance(vectorPlayerPosition, vectorSalvageLocation);
@@ -179,15 +192,16 @@ namespace fItemPlugin.Townrun
 				if (thisitem != null)
 				{
 					// Item log for cool stuff stashed
-					PluginItemType OriginalGilesItemType = ItemFunc.DetermineItemType(thisitem);
-					PluginBaseItemType thisGilesBaseType = ItemFunc.DetermineBaseType(OriginalGilesItemType);
-					if (thisGilesBaseType == PluginBaseItemType.WeaponTwoHand || thisGilesBaseType == PluginBaseItemType.WeaponOneHand || thisGilesBaseType == PluginBaseItemType.WeaponRange ||
-						 thisGilesBaseType == PluginBaseItemType.Armor || thisGilesBaseType == PluginBaseItemType.Jewelry || thisGilesBaseType == PluginBaseItemType.Offhand ||
-						 thisGilesBaseType == PluginBaseItemType.FollowerItem)
+					PluginItemTypes OriginalGilesItemType = ItemFunc.DetermineItemType(thisitem);
+					PluginBaseItemTypes thisGilesBaseType = ItemFunc.DetermineBaseType(OriginalGilesItemType);
+					if (thisGilesBaseType == PluginBaseItemTypes.WeaponTwoHand || thisGilesBaseType == PluginBaseItemTypes.WeaponOneHand || thisGilesBaseType == PluginBaseItemTypes.WeaponRange ||
+						 thisGilesBaseType == PluginBaseItemTypes.Armor || thisGilesBaseType == PluginBaseItemTypes.Jewelry || thisGilesBaseType == PluginBaseItemTypes.Offhand ||
+						 thisGilesBaseType == PluginBaseItemTypes.FollowerItem)
 					{
 						FunkyTownRunPlugin.LogJunkItems(thisitem, thisGilesBaseType, OriginalGilesItemType);
 					}
-					FunkyTownRunPlugin.TownRunStats.SalvagedItemLog(thisitem);
+					FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.SalvagedItemLog(thisitem);
+					//FunkyTownRunPlugin.TownRunStats.SalvagedItemLog(thisitem);
 					ZetaDia.Me.Inventory.SalvageItem(thisitem.ThisDynamicID);
 
 				}

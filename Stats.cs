@@ -1,5 +1,6 @@
 ﻿using System;
-using fItemPlugin.Items;
+using fBaseXtensions.Items;
+using fBaseXtensions.Items.Enums;
 using Zeta.Game.Internals.Actors;
 
 namespace fItemPlugin
@@ -37,17 +38,17 @@ namespace fItemPlugin
 
 		public void StashedItemLog(CacheACDItem i)
 		{
-			PluginItemType thisPluginItemType = ItemFunc.DetermineItemType(i);
-			if (thisPluginItemType == PluginItemType.InfernalKey)
+			PluginItemTypes thisPluginItemType = ItemFunc.DetermineItemType(i);
+			if (thisPluginItemType == PluginItemTypes.InfernalKey)
 			{
 				Keys.Stashed++;
 				return;
 			}
-			if (thisPluginItemType == PluginItemType.HoradricCache)
+			if (thisPluginItemType == PluginItemTypes.HoradricCache)
 			{
 				HoradricCache.Stashed++;
 			}
-			if (thisPluginItemType == PluginItemType.KeyStone)
+			if (thisPluginItemType == PluginItemTypes.KeyStone)
 			{
 				KeyStoneFragments.Stashed += i.ThisItemStackQuantity;
 			}

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
+using fBaseXtensions.Helpers;
+using fBaseXtensions.Items;
+using fBaseXtensions.Items.Enums;
 using fItemPlugin.ItemRules;
-using fItemPlugin.Items;
-using fItemPlugin.Player;
 using fItemPlugin.Townrun;
 using Zeta.Bot;
 using Zeta.Bot.Logic;
@@ -24,24 +27,34 @@ namespace fItemPlugin
 		{
 			get { return "An Item Plugin - with vendor behavior replacement!"; }
 		}
+		formSettings settingsWindow;
 		public Window DisplayWindow
 		{
 			get
 			{
 				Settings.LoadSettings();
 
-				try
-				{
-					FunkyWindow.funkyConfigWindow = new FunkyWindow();
+				settingsWindow = new formSettings();
 
-				}
-				catch (Exception ex)
+				Window fakeWindow = new Window
 				{
-					DBLog.DebugFormat("Failure to initilize Funky Setting Window! \r\n {0} \r\n {1} \r\n {2}", ex.Message, ex.Source, ex.StackTrace);
-				}
+					Width = 0,
+					Height = 0,
+					WindowStartupLocation = WindowStartupLocation.Manual,
+				};
+				fakeWindow.Initialized += (sender, args) =>
+				{
+					settingsWindow.ShowDialog();
+				};
+				fakeWindow.Loaded += (sender, args) =>
+				{
+					fakeWindow.Close();
+				};
 
-				return FunkyWindow.funkyConfigWindow;
+				return fakeWindow;
 			}
+
+
 		}
 
 		public void OnDisabled()
@@ -79,8 +92,6 @@ namespace fItemPlugin
 				
 				//if (vendorDecorator.DecoratedChild
 			}
-
-			Equipment.CheckEquippment();
 		}
 
 		public void OnShutdown()
@@ -96,7 +107,7 @@ namespace fItemPlugin
 
 		internal static readonly log4net.ILog DBLog = Zeta.Common.Logger.GetLoggerInstanceForType();
 
-		internal static void LogGoodItems(CacheACDItem thisgooditem, PluginBaseItemType thisPluginBaseItemType, PluginItemType thisPluginItemType)
+		internal static void LogGoodItems(CacheACDItem thisgooditem, PluginBaseItemTypes thisPluginBaseItemTypes, PluginItemTypes thisPluginItemType)
 		{
 
 			try
@@ -116,7 +127,7 @@ namespace fItemPlugin
 			FileStream LogStream = null;
 			try
 			{
-				string outputPath = FolderPaths.LoggingFolderPath + @"\" + Character.CurrentHeroName + " -- StashLog.log";
+				string outputPath = FolderPaths.LoggingFolderPath + @"\StashLog.log";
 
 				LogStream = File.Open(outputPath, FileMode.Append, FileAccess.Write, FileShare.Read);
 				using (StreamWriter LogWriter = new StreamWriter(LogStream))
@@ -155,20 +166,20 @@ namespace fItemPlugin
 					{
 						// Check for non-legendary notifications
 						bool bShouldNotify = false;
-						switch (thisPluginBaseItemType)
+						switch (thisPluginBaseItemTypes)
 						{
-							case PluginBaseItemType.WeaponOneHand:
-							case PluginBaseItemType.WeaponRange:
-							case PluginBaseItemType.WeaponTwoHand:
+							case PluginBaseItemTypes.WeaponOneHand:
+							case PluginBaseItemTypes.WeaponRange:
+							case PluginBaseItemTypes.WeaponTwoHand:
 								//if (ithisitemvalue >= settings.iNeedPointsToNotifyWeapon)
 								//  bShouldNotify = true;
 								break;
-							case PluginBaseItemType.Armor:
-							case PluginBaseItemType.Offhand:
+							case PluginBaseItemTypes.Armor:
+							case PluginBaseItemTypes.Offhand:
 								//if (ithisitemvalue >= settings.iNeedPointsToNotifyArmor)
 								//bShouldNotify = true;
 								break;
-							case PluginBaseItemType.Jewelry:
+							case PluginBaseItemTypes.Jewelry:
 								//if (ithisitemvalue >= settings.iNeedPointsToNotifyJewelry)
 								//bShouldNotify = true;
 								break;
@@ -178,14 +189,15 @@ namespace fItemPlugin
 					}
 					if (!thisgooditem.IsUnidentified)
 					{
-						LogWriter.WriteLine(thisPluginBaseItemType.ToString() + " - " + thisPluginItemType.ToString() + " '" + thisgooditem.ThisRealName + sLegendaryString);
+
+						LogWriter.WriteLine(thisgooditem.ThisQuality.ToString() + "  " + thisPluginItemType.ToString() + " '" + thisgooditem.ThisRealName + sLegendaryString);
 						LogWriter.WriteLine("  " + thisgooditem.ItemStatString);
 						LogWriter.WriteLine("");
 					}
 					else
 					{
-						LogWriter.WriteLine(thisPluginBaseItemType.ToString() + " - " + thisPluginItemType.ToString() + " '" + sLegendaryString);
-						LogWriter.WriteLine("  " + thisgooditem.ThisLevel.ToString());
+						LogWriter.WriteLine(thisgooditem.ThisQuality.ToString() + "  " + thisPluginItemType.ToString() + " '" + sLegendaryString);
+						LogWriter.WriteLine("iLevel " + thisgooditem.ThisLevel.ToString());
 						LogWriter.WriteLine("");
 					}
 				}
@@ -197,10 +209,10 @@ namespace fItemPlugin
 			}
 		}
 
-		internal static void LogJunkItems(CacheACDItem thisgooditem, PluginBaseItemType thisPluginBaseItemType, PluginItemType thisPluginItemType)
+		internal static void LogJunkItems(CacheACDItem thisgooditem, PluginBaseItemTypes thisPluginBaseItemTypes, PluginItemTypes thisPluginItemType)
 		{
 			FileStream LogStream = null;
-			string outputPath = FolderPaths.LoggingFolderPath + @"\" + Character.CurrentHeroName + " -- JunkLog.log";
+			string outputPath = FolderPaths.LoggingFolderPath + @"\JunkLog.log";
 
 			try
 			{
@@ -216,8 +228,8 @@ namespace fItemPlugin
 					string sLegendaryString = "";
 					if (thisgooditem.ThisQuality >= ItemQuality.Legendary)
 						sLegendaryString = " {legendary item}";
-					LogWriter.WriteLine(thisPluginBaseItemType.ToString() + " - " + thisPluginItemType.ToString() + " '" + thisgooditem.ThisRealName + sLegendaryString);
-					LogWriter.WriteLine("  (no scorable attributes)");
+					LogWriter.WriteLine(thisgooditem.ThisQuality.ToString() + " " + thisPluginItemType.ToString() + " '" + thisgooditem.ThisRealName + sLegendaryString);
+					LogWriter.Write(thisgooditem.ItemStatProperties.ReturnPrimaryStatString());
 					LogWriter.WriteLine("");
 				}
 
@@ -231,7 +243,7 @@ namespace fItemPlugin
 		internal static void LogTownRunStats()
 		{
 			FileStream LogStream = null;
-			string outputPath = FolderPaths.LoggingFolderPath + @"\" + Character.CurrentHeroName + " -- TownRunStats.log";
+			string outputPath = FolderPaths.LoggingFolderPath + @"\" + FunkyGame.CurrentHeroName + " -- TownRunStats.log";
 			try
 			{
 				LogStream = File.Open(outputPath, FileMode.Create, FileAccess.Write, FileShare.Read);

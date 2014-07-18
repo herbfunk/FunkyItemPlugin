@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using fBaseXtensions.Game;
+using fBaseXtensions.Helpers;
 using fItemPlugin.ItemRules.Core;
-using fItemPlugin.Player;
 using Zeta.Bot;
 using Zeta.Bot.Items;
 using Zeta.Game.Internals.Actors;
@@ -125,7 +126,7 @@ namespace fItemPlugin.ItemRules
 
 		  public void reset()
 		  {
-			  if (!String.IsNullOrEmpty(Character.CurrentAccountName))
+			  if (!String.IsNullOrEmpty(FunkyGame.CurrentAccountName))
 			  {
 				  string actualKeepLog = Path.Combine(FolderPaths.LoggingFolderPath, KeepLogFile);
 				  string archivePath = Path.Combine(FolderPaths.LoggingFolderPath, "IR2Archive");

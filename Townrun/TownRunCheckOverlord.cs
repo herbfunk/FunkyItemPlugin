@@ -1,7 +1,10 @@
 ﻿using System;
-using fItemPlugin.Items;
-using fItemPlugin.Player;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
+using fBaseXtensions.Items;
+using fBaseXtensions.Items.Enums;
 using Zeta.Bot.Logic;
+using Zeta.Bot.Navigation;
 using Zeta.Common;
 using Zeta.Game;
 using Zeta.Game.Internals.Actors;
@@ -103,15 +106,21 @@ namespace fItemPlugin.Townrun
 		private static bool RequiresRepair = false;
 		private static Act CurrentAct = Act.Invalid;
 		private static string VendorName = String.Empty;
+		private static readonly string SalvageName = "PT_Blacksmith_RepairShortcut";
 		private static Vector3 SafetyVendorLocation, SafetySalvageLocation, SafetyStashLocation, SafetyIdenifyLocation, SafetyGambleLocation;
+		private static bool MovedToSafetyLocation = false;
 
 		internal static RunStatus ActionsEvaluatedBehavior(object ret)
 		{
 			//Player.UpdatePotions();
 			//townRunItemCache.UpdateLists(Player.CacheItemList.Values.ToList());
 			//FunkyTownRunPlugin.DBLog.Info(townRunItemCache.GetListString());
-			CurrentQuestSNO = GetQuestSNO();
-			IsInAdventureMode = (CurrentQuestSNO == 312429);
+			Navigator.Clear();
+			Navigator.SearchGridProvider.Update();
+
+			MovedToSafetyLocation = false;
+			//CurrentQuestSNO = GetQuestSNO();
+			//IsInAdventureMode = (CurrentQuestSNO == 312429);
 			CurrentAct = FindActByLevelID(ZetaDia.CurrentLevelAreaId);
 			switch (CurrentAct)
 			{
@@ -142,14 +151,16 @@ namespace fItemPlugin.Townrun
 		}
 		internal static RunStatus ActionsEvaluatedEndingBehavior(object ret)
 		{
-			FunkyTownRunPlugin.TownRunStats.TownRuns++;
-			FunkyTownRunPlugin.LogTownRunStats();
+			//FunkyTownRunPlugin.TownRunStats.TownRuns++;
+			FunkyGame.CurrentGameStats.CurrentProfile.TownRuns++;
+			//FunkyTownRunPlugin.LogTownRunStats();
 
 			SafetyVendorLocation = Vector3.Zero;
 			SafetySalvageLocation = Vector3.Zero;
 			SafetyStashLocation = Vector3.Zero;
 			SafetyIdenifyLocation = Vector3.Zero;
 			SafetyGambleLocation = Vector3.Zero;
+			MovedToSafetyLocation = false;
 
 			_dictItemStashAttempted.Clear();
 			VendorName = String.Empty;
@@ -184,6 +195,7 @@ namespace fItemPlugin.Townrun
 			switch (ID)
 			{
 				case 332339:
+				case 19947:
 					return Act.A1;
 				case 168314:
 					return Act.A2;
@@ -214,7 +226,7 @@ namespace fItemPlugin.Townrun
 					switch (act)
 					{
 						case Act.A1:
-							if (!IsInAdventureMode)
+							if (!FunkyGame.AdventureMode)
 								return new Vector3(2958.418f, 2823.037f, 24.04533f);
 							else
 								return new Vector3(375.5075f, 563.1337f, 24.04533f);
@@ -231,7 +243,7 @@ namespace fItemPlugin.Townrun
 					switch (act)
 					{
 						case Act.A1:
-							if (!IsInAdventureMode)
+							if (!FunkyGame.AdventureMode)
 								return new Vector3(2901.399f, 2809.826f, 24.04533f);
 							else
 								return new Vector3(320.8555f, 524.6776f, 24.04532f);
@@ -248,7 +260,7 @@ namespace fItemPlugin.Townrun
 					switch (act)
 					{
 						case Act.A1:
-							if (!IsInAdventureMode)
+							if (!FunkyGame.AdventureMode)
 								return new Vector3(2967.146f, 2799.459f, 24.04533f);
 							else
 								return new Vector3(386.8494f, 524.2585f, 24.04533f);
@@ -279,7 +291,7 @@ namespace fItemPlugin.Townrun
 					switch (act)
 					{
 						case Act.A1:
-							if (!IsInAdventureMode)
+							if (!FunkyGame.AdventureMode)
 								return new Vector3(2959.277f, 2811.887f, 24.04533f);
 							else
 								return new Vector3(386.6582f, 534.2561f, 24.04533f);
@@ -296,7 +308,7 @@ namespace fItemPlugin.Townrun
 					switch (act)
 					{
 						case Act.A1:
-							if (!IsInAdventureMode)
+							if (!FunkyGame.AdventureMode)
 								return new Vector3(2955.026f, 2817.4f, 24.04533f);
 							else
 								return new Vector3(372.3016f, 532.6918f, 24.04532f);
@@ -324,68 +336,68 @@ namespace fItemPlugin.Townrun
 				return true;
 			}
 			// Now look for Misc items we might want to keep
-			PluginItemType TrueItemType = ItemFunc.DetermineItemType(thisitem);
-			if (TrueItemType == PluginItemType.KeyStone)
+			PluginItemTypes TrueItemType = ItemFunc.DetermineItemType(thisitem);
+			if (TrueItemType == PluginItemTypes.KeyStone)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep keystone fragments)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.HoradricCache)
+			if (TrueItemType == PluginItemTypes.HoradricCache)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep cache)");
 				return FunkyTownRunPlugin.PluginSettings.StashHoradricCache;
 			}
-			if (TrueItemType == PluginItemType.StaffOfHerding)
+			if (TrueItemType == PluginItemTypes.StaffOfHerding)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep staff of herding)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.CraftingMaterial)
+			if (TrueItemType == PluginItemTypes.CraftingMaterial)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep craft materials)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.CraftingPlan)
+			if (TrueItemType == PluginItemTypes.CraftingPlan)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep plans)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.Emerald)
+			if (TrueItemType == PluginItemTypes.Emerald)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep gems)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.Amethyst)
+			if (TrueItemType == PluginItemTypes.Amethyst)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep gems)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.Topaz)
+			if (TrueItemType == PluginItemTypes.Topaz)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep gems)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.Ruby)
+			if (TrueItemType == PluginItemTypes.Ruby)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep gems)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.Diamond)
+			if (TrueItemType == PluginItemTypes.Diamond)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep gems)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.CraftTome)
+			if (TrueItemType == PluginItemTypes.CraftTome)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep tomes)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.InfernalKey)
+			if (TrueItemType == PluginItemTypes.InfernalKey)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (autokeep infernal key)");
 				return true;
 			}
-			if (TrueItemType == PluginItemType.HealthPotion)
+			if (TrueItemType == PluginItemTypes.HealthPotion)
 			{
 				//if (bOutputItemScores) FunkyTownRunPlugin.DBLog.InfoFormat(thisitem.ThisRealName + " [" + thisitem.ThisInternalName + "] [" + TrueItemType + "] = (ignoring potions)");
 				return false;
@@ -409,11 +421,16 @@ namespace fItemPlugin.Townrun
 
 		internal static bool SalvageValidation(CacheACDItem thisitem)
 		{
+			if (thisitem.IsVendorBought || thisitem.IsUnidentified || thisitem.ItemType == PluginItemTypes.HealthPotion || thisitem.IsHoradricCache || thisitem.ThisLevel==1)
+			{
+				return false;
+			}
+
 			//Only Check items we can actually salvage!
-			if (thisitem.BaseItemType == PluginBaseItemType.FollowerItem || thisitem.BaseItemType == PluginBaseItemType.Armor ||
-				thisitem.BaseItemType == PluginBaseItemType.Jewelry || thisitem.BaseItemType == PluginBaseItemType.Offhand ||
-				thisitem.BaseItemType == PluginBaseItemType.WeaponOneHand || thisitem.BaseItemType == PluginBaseItemType.WeaponRange ||
-				thisitem.BaseItemType == PluginBaseItemType.WeaponTwoHand)
+			if (thisitem.BaseItemType == PluginBaseItemTypes.FollowerItem || thisitem.BaseItemType == PluginBaseItemTypes.Armor ||
+				thisitem.BaseItemType == PluginBaseItemTypes.Jewelry || thisitem.BaseItemType == PluginBaseItemTypes.Offhand ||
+				thisitem.BaseItemType == PluginBaseItemTypes.WeaponOneHand || thisitem.BaseItemType == PluginBaseItemTypes.WeaponRange ||
+				thisitem.BaseItemType == PluginBaseItemTypes.WeaponTwoHand)
 			{
 				if (thisitem.ThisQuality == ItemQuality.Legendary)
 				{
@@ -450,23 +467,23 @@ namespace fItemPlugin.Townrun
 
 		internal static bool SellValidation(string thisinternalname, int thislevel, ItemQuality thisquality, ItemType thisdbitemtype, FollowerType thisfollowertype)
 		{
-			PluginItemType thisPluginItemType = ItemFunc.DetermineItemType(thisinternalname, thisdbitemtype, thisfollowertype);
-			PluginBaseItemType thisGilesBaseType = ItemFunc.DetermineBaseType(thisPluginItemType);
+			PluginItemTypes thisPluginItemType = ItemFunc.DetermineItemType(thisinternalname, thisdbitemtype, thisfollowertype);
+			PluginBaseItemTypes thisGilesBaseType = ItemFunc.DetermineBaseType(thisPluginItemType);
 
 			switch (thisGilesBaseType)
 			{
-				case PluginBaseItemType.WeaponRange:
-				case PluginBaseItemType.WeaponOneHand:
-				case PluginBaseItemType.WeaponTwoHand:
-				case PluginBaseItemType.Armor:
-				case PluginBaseItemType.Offhand:
-				case PluginBaseItemType.Jewelry:
-				case PluginBaseItemType.FollowerItem:
+				case PluginBaseItemTypes.WeaponRange:
+				case PluginBaseItemTypes.WeaponOneHand:
+				case PluginBaseItemTypes.WeaponTwoHand:
+				case PluginBaseItemTypes.Armor:
+				case PluginBaseItemTypes.Offhand:
+				case PluginBaseItemTypes.Jewelry:
+				case PluginBaseItemTypes.FollowerItem:
 					return true;
-				case PluginBaseItemType.Gem:
-				case PluginBaseItemType.Misc:
-				case PluginBaseItemType.Unknown:
-					if (thisPluginItemType == PluginItemType.LegendaryCraftingMaterial)
+				case PluginBaseItemTypes.Gem:
+				case PluginBaseItemTypes.Misc:
+				case PluginBaseItemTypes.Unknown:
+					if (thisPluginItemType == PluginItemTypes.LegendaryCraftingMaterial)
 						return true;
 					//Sell any plans not already stashed.
 					return thisdbitemtype == ItemType.CraftingPlan;

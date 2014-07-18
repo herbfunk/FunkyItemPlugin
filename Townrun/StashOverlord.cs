@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
+using fBaseXtensions.Items;
+using fBaseXtensions.Items.Enums;
 using fItemPlugin.ItemRules;
-using fItemPlugin.Items;
-using fItemPlugin.Player;
 using Zeta.Bot;
 using Zeta.Bot.Navigation;
 using Zeta.Bot.Settings;
@@ -62,10 +64,10 @@ namespace fItemPlugin.Townrun
 					if (!ItemManager.Current.ItemIsProtected(thisitem.ACDItem))
 					{
 						//Don't Stash Potions.
-						if (thisitem.ItemType == PluginItemType.HealthPotion) continue;
+						if (thisitem.ItemType == PluginItemTypes.HealthPotion) continue;
 
 						//Stashing Horadric Caches?
-						if (thisitem.ItemType==PluginItemType.HoradricCache)
+						if (thisitem.ItemType==PluginItemTypes.HoradricCache)
 						{
 							if (FunkyTownRunPlugin.PluginSettings.StashHoradricCache)
 								townRunItemCache.KeepItems.Add(thisitem);
@@ -120,7 +122,7 @@ namespace fItemPlugin.Townrun
 			bLoggedAnythingThisStash = false;
 			bUpdatedStashMap = false;
 			Delay.Reset();
-
+			MovedToSafetyLocation = false;
 			return RunStatus.Success;
 		}
 
@@ -161,7 +163,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus StashMovement(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -200,7 +202,7 @@ namespace fItemPlugin.Townrun
 			if (iDistanceFromStash > 7.5f && !UIElements.StashWindow.IsVisible)
 			{
 				//Wait until we are not moving to send click again..
-				if (Character.IsMoving) return RunStatus.Running;
+				if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
 
 				ZetaDia.Me.UsePower(SNOPower.Axe_Operate_Gizmo, vectorStashLocation, ZetaDia.Me.WorldDynamicId, objPlayStash.ACDGuid);
 				return RunStatus.Running;
@@ -217,7 +219,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus StashUpdate(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -252,7 +254,7 @@ namespace fItemPlugin.Townrun
 						// Mark this slot as not-free
 						GilesStashSlotBlocked[inventoryColumn, inventoryRow] = true;
 						// Try and reliably find out if this is a two slot item or not
-						PluginItemType tempItemType = ItemFunc.DetermineItemType(tempitem.InternalName, tempitem.ItemType, tempitem.FollowerSpecialType);
+						PluginItemTypes tempItemType = ItemFunc.DetermineItemType(tempitem.InternalName, tempitem.ItemType, tempitem.FollowerSpecialType);
 
 						if (ItemFunc.DetermineIsTwoSlot(tempItemType) && inventoryRow != 19 && inventoryRow != 9 && inventoryRow != 29 && inventoryRow != 39)
 						{
@@ -274,7 +276,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus StashItems(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -305,7 +307,8 @@ namespace fItemPlugin.Townrun
 					//We have a valid place to stash.. so lets check if stash page is currently open
 					if (ZetaDia.Me.Inventory.CurrentStashPage == LastStashPage)
 					{
-						FunkyTownRunPlugin.TownRunStats.StashedItemLog(thisitem);
+						//FunkyTownRunPlugin.TownRunStats.StashedItemLog(thisitem);
+						FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.StashedItemLog(thisitem);
 						ZetaDia.Me.Inventory.MoveItem(thisitem.ThisDynamicID, ZetaDia.Me.CommonData.DynamicId, InventorySlot.SharedStash, LastStashPoint[0], LastStashPoint[1]);
 						LastStashPoint = new[] { -1, -1 };
 						LastStashPage = -1;
@@ -336,8 +339,8 @@ namespace fItemPlugin.Townrun
 			int iOriginalStackQuantity = item.ThisItemStackQuantity;
 			string sOriginalItemName = item.ThisRealName;
 			string sOriginalInternalName = item.ThisInternalName;
-			PluginItemType OriginalPluginItemType = ItemFunc.DetermineItemType(item);
-			PluginBaseItemType thisGilesBaseType = ItemFunc.DetermineBaseType(OriginalPluginItemType);
+			PluginItemTypes OriginalPluginItemType = ItemFunc.DetermineItemType(item);
+			PluginBaseItemTypes thisGilesBaseType = ItemFunc.DetermineBaseType(OriginalPluginItemType);
 			bool bOriginalTwoSlot = ItemFunc.DetermineIsTwoSlot(OriginalPluginItemType);
 			bool bOriginalIsStackable = ItemFunc.DetermineIsStackable(OriginalPluginItemType);
 			int iAttempts;
@@ -402,9 +405,9 @@ namespace fItemPlugin.Townrun
 			int iLeftoverStackQuantity;
 			// Item log for cool stuff stashed
 
-			if (thisGilesBaseType == PluginBaseItemType.WeaponTwoHand || thisGilesBaseType == PluginBaseItemType.WeaponOneHand || thisGilesBaseType == PluginBaseItemType.WeaponRange ||
-				 thisGilesBaseType == PluginBaseItemType.Armor || thisGilesBaseType == PluginBaseItemType.Jewelry || thisGilesBaseType == PluginBaseItemType.Offhand ||
-				 thisGilesBaseType == PluginBaseItemType.FollowerItem)
+			if (thisGilesBaseType == PluginBaseItemTypes.WeaponTwoHand || thisGilesBaseType == PluginBaseItemTypes.WeaponOneHand || thisGilesBaseType == PluginBaseItemTypes.WeaponRange ||
+				 thisGilesBaseType == PluginBaseItemTypes.Armor || thisGilesBaseType == PluginBaseItemTypes.Jewelry || thisGilesBaseType == PluginBaseItemTypes.Offhand ||
+				 thisGilesBaseType == PluginBaseItemTypes.FollowerItem)
 			{
 
 				FunkyTownRunPlugin.LogGoodItems(item, thisGilesBaseType, OriginalPluginItemType);

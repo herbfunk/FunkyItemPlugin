@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+using fBaseXtensions.Game;
+using fBaseXtensions.Game.Hero;
+using fBaseXtensions.Items;
+using fBaseXtensions.Items.Enums;
 using fItemPlugin.ItemRules;
-using fItemPlugin.Items;
-using fItemPlugin.Player;
 using Zeta.Bot;
 using Zeta.Bot.Navigation;
 using Zeta.Common;
@@ -34,8 +36,9 @@ namespace fItemPlugin.Townrun
 
 
 			//Get new list of current backpack
-			Backpack.ReturnRegularPotions();
-
+			var potions=Backpack.ReturnRegularPotions();
+			if (potions.Count>0)
+				Backpack.CurrentPotionACDGUID=potions.First().ACDGUID;
 
 			foreach (var thisitem in Backpack.CacheItemList.Values)
 			{
@@ -44,7 +47,7 @@ namespace fItemPlugin.Townrun
 					// Find out if this item's in a protected bag slot
 					if (!ItemManager.Current.ItemIsProtected(thisitem.ACDItem))
 					{
-						if (thisitem.ItemType == PluginItemType.HealthPotion || thisitem.ItemType == PluginItemType.HoradricCache)
+						if (thisitem.ItemType == PluginItemTypes.HealthPotion || thisitem.ItemType == PluginItemTypes.HoradricCache)
 						{
 							if (thisitem.IsRegularPotion)
 							{
@@ -63,7 +66,11 @@ namespace fItemPlugin.Townrun
 							Interpreter.InterpreterAction action = FunkyTownRunPlugin.ItemRulesEval.checkItem(thisitem.ACDItem, ItemEvaluationType.Keep);
 							switch (action)
 							{
+								case Interpreter.InterpreterAction.SELL:
+									townRunItemCache.SellItems.Add(thisitem);
+									continue;
 								case Interpreter.InterpreterAction.TRASH:
+									if (SalvageValidation(thisitem)) continue;
 									townRunItemCache.SellItems.Add(thisitem);
 									continue;
 							}
@@ -76,14 +83,9 @@ namespace fItemPlugin.Townrun
 						}
 						else
 						{
-							if (!thisitem.IsVendorBought && !thisitem.IsUnidentified && thisitem.ItemType != PluginItemType.HealthPotion && !thisitem.IsHoradricCache)
-							{
-								if (SalvageValidation(thisitem)) continue;
-							}
-							else if (thisitem.IsUnidentified)
-							{
-								continue;
-							}
+							if (SalvageValidation(thisitem)) continue;
+							if (thisitem.IsUnidentified) continue;
+							
 
 							bShouldSellThis = SellValidation(thisitem.ThisInternalName, thisitem.ThisLevel, thisitem.ThisQuality, thisitem.ThisDBItemType, thisitem.ThisFollowerType);
 						}
@@ -138,7 +140,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus VendorMovement(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -174,7 +176,7 @@ namespace fItemPlugin.Townrun
 
 			float iDistanceFromSell = Vector3.Distance(vectorPlayerPosition, vectorSellLocation);
 
-			if (Character.IsMoving) return RunStatus.Running;
+			if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
 
 			if (iDistanceFromSell > 40f)
 			{
@@ -205,7 +207,7 @@ namespace fItemPlugin.Townrun
 
 		internal static RunStatus GilesOptimisedSell(object ret)
 		{
-			if (Character.GameIsInvalid())
+			if (FunkyGame.GameIsInvalid)
 			{
 				ActionsChecked = false;
 				FunkyTownRunPlugin.DBLog.InfoFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
@@ -232,17 +234,17 @@ namespace fItemPlugin.Townrun
 				// Item log for cool stuff sold
 				if (thisitem != null)
 				{
-					PluginItemType OriginalPluginItemType = ItemFunc.DetermineItemType(thisitem);
-					PluginBaseItemType thisGilesBaseType = ItemFunc.DetermineBaseType(OriginalPluginItemType);
-					if (thisGilesBaseType == PluginBaseItemType.WeaponTwoHand || thisGilesBaseType == PluginBaseItemType.WeaponOneHand || thisGilesBaseType == PluginBaseItemType.WeaponRange ||
-						 thisGilesBaseType == PluginBaseItemType.Armor || thisGilesBaseType == PluginBaseItemType.Jewelry || thisGilesBaseType == PluginBaseItemType.Offhand ||
-						 thisGilesBaseType == PluginBaseItemType.FollowerItem)
+					PluginItemTypes OriginalPluginItemType = ItemFunc.DetermineItemType(thisitem);
+					PluginBaseItemTypes thisGilesBaseType = ItemFunc.DetermineBaseType(OriginalPluginItemType);
+					if (thisGilesBaseType == PluginBaseItemTypes.WeaponTwoHand || thisGilesBaseType == PluginBaseItemTypes.WeaponOneHand || thisGilesBaseType == PluginBaseItemTypes.WeaponRange ||
+						 thisGilesBaseType == PluginBaseItemTypes.Armor || thisGilesBaseType == PluginBaseItemTypes.Jewelry || thisGilesBaseType == PluginBaseItemTypes.Offhand ||
+						 thisGilesBaseType == PluginBaseItemTypes.FollowerItem)
 					{
 						FunkyTownRunPlugin.LogJunkItems(thisitem, thisGilesBaseType, OriginalPluginItemType);
 					}
 					
-					FunkyTownRunPlugin.TownRunStats.VendoredItemLog(thisitem);
-
+					//FunkyTownRunPlugin.TownRunStats.VendoredItemLog(thisitem);
+					FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.VendoredItemLog(thisitem);
 					ZetaDia.Me.Inventory.SellItem(thisitem.ACDItem);
 				}
 				if (thisitem != null)
@@ -356,7 +358,7 @@ namespace fItemPlugin.Townrun
 			PotionDynamicID = 0;
 			PotionMerchantACDItem = null;
 			Delay.Reset();
-
+			MovedToSafetyLocation = false;
 			Backpack.ReturnRegularPotions();
 			//if (potions != null) Bot.Character.Data.iTotalPotions = potions.Any() ? potions.Sum(p => p.ThisItemStackQuantity) : 0;
 
