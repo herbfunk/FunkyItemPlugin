@@ -254,7 +254,7 @@ namespace fItemPlugin.Townrun
 						// Mark this slot as not-free
 						GilesStashSlotBlocked[inventoryColumn, inventoryRow] = true;
 						// Try and reliably find out if this is a two slot item or not
-						PluginItemTypes tempItemType = ItemFunc.DetermineItemType(tempitem.InternalName, tempitem.ItemType, tempitem.FollowerSpecialType);
+						PluginItemTypes tempItemType = ItemFunc.DetermineItemType(tempitem.InternalName, tempitem.ItemType, tempitem.FollowerSpecialType, tempitem.ActorSNO);
 
 						if (ItemFunc.DetermineIsTwoSlot(tempItemType) && inventoryRow != 19 && inventoryRow != 9 && inventoryRow != 29 && inventoryRow != 39)
 						{

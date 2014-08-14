@@ -397,6 +397,11 @@ namespace fItemPlugin.Townrun
 				return true;
 			}
 
+			if (TrueItemType == PluginItemTypes.Dye)
+			{
+				return true;
+			}
+
 			// Ok now try to do some decent item scoring based on item types
 			//double iNeedScore = ScoreNeeded(TrueItemType);
 			//double iMyScore = ValueThisItem(thisitem, TrueItemType);
