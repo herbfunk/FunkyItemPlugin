@@ -210,7 +210,7 @@ namespace fItemPlugin.Townrun
 
 
 			//Wait until we are not moving
-			if (FunkyGame.CurrentActiveHero.IsMoving)
+			if (FunkyGame.Hero.IsMoving)
 			{
 				return false;
 			}
@@ -324,7 +324,7 @@ namespace fItemPlugin.Townrun
 			//Character.FindActByLevelID(Bot.Character.Data.CurrentWorldDynamicID);
 
 			//Wait until we are not moving
-			if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
+			if (FunkyGame.Hero.IsMoving) return RunStatus.Running;
 
 
 			float iDistanceFromSell = Vector3.Distance(vectorPlayerPosition, vectorBookOfCainLocation);

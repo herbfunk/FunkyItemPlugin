@@ -1,4 +1,9 @@
-﻿v1.0.0
+﻿v1.1.0
+Now hooks town portal, horadric cache interaction, and finishing behaviors using fBaseXtension behaviors.
+Fixed an exception when fBaseXtension is disabled. (for Trinity Users)
+
+
+v1.0.0
 Now references fBaseXtensions Plugin.
 Item Rules Evaluation will always use keep to evaluate actions.
 Majority of code has been moved into fBaseXtensions. (besides ItemRules, TownRun behaviors, and plugin)

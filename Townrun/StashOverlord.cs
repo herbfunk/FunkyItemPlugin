@@ -202,7 +202,7 @@ namespace fItemPlugin.Townrun
 			if (iDistanceFromStash > 7.5f && !UIElements.StashWindow.IsVisible)
 			{
 				//Wait until we are not moving to send click again..
-				if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
+				if (FunkyGame.Hero.IsMoving) return RunStatus.Running;
 
 				ZetaDia.Me.UsePower(SNOPower.Axe_Operate_Gizmo, vectorStashLocation, ZetaDia.Me.WorldDynamicId, objPlayStash.ACDGuid);
 				return RunStatus.Running;
@@ -308,7 +308,8 @@ namespace fItemPlugin.Townrun
 					if (ZetaDia.Me.Inventory.CurrentStashPage == LastStashPage)
 					{
 						//FunkyTownRunPlugin.TownRunStats.StashedItemLog(thisitem);
-						FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.StashedItemLog(thisitem);
+						if (FunkyGame.CurrentGameStats != null)
+							FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.StashedItemLog(thisitem);
 						ZetaDia.Me.Inventory.MoveItem(thisitem.ThisDynamicID, ZetaDia.Me.CommonData.DynamicId, InventorySlot.SharedStash, LastStashPoint[0], LastStashPoint[1]);
 						LastStashPoint = new[] { -1, -1 };
 						LastStashPage = -1;

@@ -57,6 +57,8 @@ namespace fItemPlugin.Townrun
 				return RunStatus.Failure;
 			}
 
+			BotMain.StatusText = "Town run: Gambling Movement";
+
 			DiaUnit objGamblingNPC = ZetaDia.Actors.GetActorsOfType<DiaUnit>(true).FirstOrDefault<DiaUnit>(u => u.Name.StartsWith("X1_RandomItemNPC"));
 			Vector3 vectorPlayerPosition = ZetaDia.Me.Position;
 			Vector3 vectorGamblingPosition = Vector3.Zero;
@@ -103,6 +105,9 @@ namespace fItemPlugin.Townrun
 				FunkyTownRunPlugin.DBLog.DebugFormat("[Funky] Town Run Behavior Failed! (Not In Game/Invalid Actor/misc)");
 				return RunStatus.Failure;
 			}
+
+			BotMain.StatusText = "Town run: Gambling Interaction";
+
 			UIElement uie = BloodShardVendorMainDialog;
 			if (!(uie != null && uie.IsValid && uie.IsVisible))
 			{
@@ -191,7 +196,8 @@ namespace fItemPlugin.Townrun
 			if (LastBloodShardCount != CurrentBloodShardCount)
 			{
 				LastBloodShardCount=CurrentBloodShardCount;
-				FunkyGame.CurrentGameStats.CurrentProfile.ItemsGambled++;
+				if (FunkyGame.CurrentGameStats != null)
+					FunkyGame.CurrentGameStats.CurrentProfile.ItemsGambled++;
 				//FunkyTownRunPlugin.TownRunStats.ItemsGambled++;
 			}
 			else if (ZetaDia.Me.Inventory.NumFreeBackpackSlots < 3)

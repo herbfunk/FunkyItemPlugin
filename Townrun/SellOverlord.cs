@@ -176,7 +176,7 @@ namespace fItemPlugin.Townrun
 
 			float iDistanceFromSell = Vector3.Distance(vectorPlayerPosition, vectorSellLocation);
 
-			if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
+			if (FunkyGame.Hero.IsMoving) return RunStatus.Running;
 
 			if (iDistanceFromSell > 40f)
 			{
@@ -244,7 +244,8 @@ namespace fItemPlugin.Townrun
 					}
 					
 					//FunkyTownRunPlugin.TownRunStats.VendoredItemLog(thisitem);
-					FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.VendoredItemLog(thisitem);
+					if (FunkyGame.CurrentGameStats != null)
+						FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.VendoredItemLog(thisitem);
 					ZetaDia.Me.Inventory.SellItem(thisitem.ACDItem);
 				}
 				if (thisitem != null)

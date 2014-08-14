@@ -9,6 +9,7 @@ using Zeta.Common;
 using Zeta.Game;
 using Zeta.Game.Internals.Actors;
 using Zeta.TreeSharp;
+using Logger = fBaseXtensions.Helpers.Logger;
 
 namespace fItemPlugin.Townrun
 {
@@ -152,7 +153,8 @@ namespace fItemPlugin.Townrun
 		internal static RunStatus ActionsEvaluatedEndingBehavior(object ret)
 		{
 			//FunkyTownRunPlugin.TownRunStats.TownRuns++;
-			FunkyGame.CurrentGameStats.CurrentProfile.TownRuns++;
+			if (FunkyGame.CurrentGameStats != null)
+				FunkyGame.CurrentGameStats.CurrentProfile.TownRuns++;
 			//FunkyTownRunPlugin.LogTownRunStats();
 
 			SafetyVendorLocation = Vector3.Zero;
@@ -166,26 +168,12 @@ namespace fItemPlugin.Townrun
 			VendorName = String.Empty;
 			CurrentAct = Act.Invalid;
 			ActionsChecked = false;
+
+			Logger.DBLog.InfoFormat("[FunkyTownRun] Finished Behavior.");
 			return RunStatus.Success;
 		}
 
-		private static int GetQuestSNO()
-		{
-			int retValue = -1;
-			using (ZetaDia.Memory.AcquireFrame())
-			{
-				try
-				{
-					retValue = ZetaDia.CurrentQuest.QuestSNO;
-				}
-				catch
-				{
 
-				}
-			}
-
-			return retValue;
-		}
 
 		///<summary>
 		///To Find Town Areas

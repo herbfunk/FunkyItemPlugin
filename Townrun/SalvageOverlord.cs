@@ -159,7 +159,7 @@ namespace fItemPlugin.Townrun
 
 
 			//Wait until we are not moving
-			if (FunkyGame.CurrentActiveHero.IsMoving) return RunStatus.Running;
+			if (FunkyGame.Hero.IsMoving) return RunStatus.Running;
 
 
 			float iDistanceFromSell = Vector3.Distance(vectorPlayerPosition, vectorSalvageLocation);
@@ -200,7 +200,8 @@ namespace fItemPlugin.Townrun
 					{
 						FunkyTownRunPlugin.LogJunkItems(thisitem, thisGilesBaseType, OriginalGilesItemType);
 					}
-					FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.SalvagedItemLog(thisitem);
+					if (FunkyGame.CurrentGameStats!=null)
+						FunkyGame.CurrentGameStats.CurrentProfile.LootTracker.SalvagedItemLog(thisitem);
 					//FunkyTownRunPlugin.TownRunStats.SalvagedItemLog(thisitem);
 					ZetaDia.Me.Inventory.SalvageItem(thisitem.ThisDynamicID);
 
